@@ -1,8 +1,3 @@
-# Fun Facts 
-
-If you search for "github node docker" you can find the official repository with the Dockerfiles for the node images
-
-
 # Repository
 
 ## Login and Logout of repository
@@ -711,3 +706,8 @@ If your service needs to be interactive there's two options you need to add to y
 The first option is to open the standard input. For that you use the *key name* **stdin_open** and set it's value to true
 
 The second option is to add the pseudo-TTY option. For that you can use the *key name* **tty** and in the same way just set it's value to true
+
+
+# Fun Facts 
+
+If you search for "github node docker" you can find the official repository with the Dockerfiles for the node images
