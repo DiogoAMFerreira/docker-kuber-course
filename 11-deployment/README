@@ -1,0 +1,60 @@
+# Build image
+
+```sh
+docker build -t node-dep-example .
+```
+
+# Run container
+
+```sh
+docker run -d --rm --name node-dep -p 80:80 node-dep-example
+```
+
+# Connect to AWS server
+```sh
+ssh -i "example-1.pem" ec2-user@ec2-18-218-126-91.us-est-2.compute.azonaws.com
+```
+
+# Important: Installing Docker on a Virtual Machine
+
+Install Docker on a virtual EC2 instance.
+
+Please note that the following command (which is used in the next lecture) will unfortunately not work anymore:
+
+```sh
+    amazon-linux-extras install docker
+```
+
+Instead, use this approach / these commands:
+
+```sh
+    sudo yum update -y
+    sudo yum -y install docker
+     
+    sudo service docker start
+     
+    sudo usermod -a -G docker ec2-user
+```
+
+Make sure to log out + back in after running these commands.
+
+Once you logged back in, run this command:
+```sh
+    sudo systemctl enable docker
+```
+Thereafter, you can check whether Docker is available by running:
+
+```sh
+    docker version
+```
+
+Also see: https://stackoverflow.com/questions/53918841/how-to-install-docker-on-amazon-linux2/61708497#61708497
+
+Of course you might not always want to install it on a AWS EC2 instance though - maybe you are using a different provider.
+
+In that case, you can always follow the Linux setup instructions you find on the official Docker page: https://docs.docker.com/engine/install/ (under "Server").
+
+Helpful links:
+https://academind.com/tutorials/aws-the-basics
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html
+https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html

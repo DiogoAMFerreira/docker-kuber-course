@@ -1,0 +1,12 @@
+# How to create this App image
+docker build -t feedback-node .
+# How to create this App image with a specific port
+docker build -t feedback-node:dev --build-arg DEFAULT_PORT=8000 .
+# How to delete this App image
+docker rmi feedback-node
+# How to run this App
+docker run -p 3000:80 -d --rm --name feedback-app -v feedback:/app/feedback feedback-node
+## This app but with bind mount for development
+docker run -p 3000:8000 -d --rm --env PORT=8000 --name feedback-app -v feedback:/app/feedback -v "/mnt/c/Code/Formações/Docker&Kubernetes/05-data-volumes:/app:ro" -v /app/node_modules -v /app/temp feedback-node
+# How to stop this App
+docker stop feedback-app

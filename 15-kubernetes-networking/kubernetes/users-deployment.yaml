@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+        - name: users
+          image: diogoferreiranavia/kube-demo-users:latest
+          env:
+          - name: AUTH_ADDRESS
+            value: "auth-service.default"
+            # value: "10.101.184.194"
+            # value: localhost
+        # - name: auth
+        #   image: diogoferreiranavia/kub-demo-auth:latest

@@ -1,0 +1,42 @@
+Utility containers are containers created to help you do some action and don't need to be running after. 
+Imagine you want to start a node or a laravel application and you need the start up files, like package.json in node, and you don't wan't to install node on your host machine.
+
+One way to do it is creating the node container and then executing the command to initiate the application inside:
+
+docker run -it -d --name node-init node
+
+docker exec -it node-init npm init
+
+Another way to do the same thing is by overriding the default command of the container:
+
+docker run -it node npm init
+
+But you can always create a node image with the option to execute any command, and map with a bind mount the current folder which you are running the command in.
+This way any changes made inside that folder will be mirrored to outside.
+Note: Use Alpine images for an extra light image
+
+One example of this is like this:
+docker build -t node-util .
+docker run -it -v /{local_absolute_path_where_package_will_be_created}:/app" node-util npm init
+
+This will be very useful when launching a PHP + Laravel solution
+
+This option completly overrides any command executed by the CMD inside the image.
+This can be risky because it can for example delete files through a bind mount on the host machine. A better way to do this is using ENTRYPOINT instead of CMD in the dockerfile.
+With ENTRYPOINT this behaves differently. Instead of completly overriding the command it appends to it.
+Then you can simply add the rest of the command.
+
+One example of this is like:
+docker run -it -v /{local_absolute_path_where_package_will_be_created}:/app mynpm install express --save
+
+
+Lastly you can also convert the command into a compose file and after that you can simply run the utility container with the run command.
+
+Example of this:
+docker-compose run --rm npm init
+
+Attention: Docker compose run doesn't do up and down of the container, this means the container isn't removed after. You might want to add the --rm option
+
+When working with "Utility Containers" on Linux, take a closer look at this very helpful thread in the Q&A section: 
+https://www.udemy.com/course/docker-kubernetes-the-practical-guide/learn/#questions/12977214/
+This thread discusses user permissions as set by Docker when working with "Utility Containers" and how you should tweak them.

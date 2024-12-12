@@ -1,0 +1,51 @@
+# Volumes in Kubernetes
+
+To have persistant data for the containers you need to setup volumes using Kubernetes. You can read more on Volumes here: 
+https://kubernetes.io/docs/concepts/storage/volumes/
+
+But most important you have the list of diferent types of volumes that will work diferently for each provider. The type will depend on what provider you are using.
+
+Volumes are attached to Pods. So that means you have to configure it where you define a Pod. So usually in the deployment yaml.
+
+For example the emptyDir volume type is attached to the Pod and lives with the Pod. If pod is destroyed the empty dir is destroyed with it
+This type has a downside when there's multiple replicas since it's attached to the Pod
+
+If you are using multiple Replicas you might prefer to use the hostPath type
+This allows to setup a path from the real machine to be exposed to all the Pods in the WorkerNode.
+If you have multiple Worker nodes then you need a different solution.
+
+The CSI type allows you to create your own driver solution for volume
+You can then look online for any cloud provider service driver to integrate with CSI
+
+There's a way to have persistent volumes that are independent from the Pods and Nodes
+The ideia is that theres a new entity in the cluster that is detached from the Node and Pod
+They require the use of Persistent Volume Claims that then reach out to the persistant Volumes
+For that you need to create a Persistent Volume yaml file with it's configuration. The persisntent Volumes are like Volumes, share the same types and are configured the same way but in a service file instead of directly in the node
+More about Persistent Volumes here: 
+https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+
+You can list the persistent volumes with the following command:
+```sh
+kubectl get pv
+```
+
+You can list the storage classes with the following command:
+```sh
+kubectl get sc
+```
+
+Useful links:
+https://www.computerweekly.com/feature/Storage-pros-and-cons-Block-vs-file-vs-object-storage
+
+# Environment Variables in Kubernetes
+
+In kubernetes, like docker you can use environment variables. These can be setup two ways. Either on the deployment or with config maps
+
+If you configure a config map you can use the following command to get the maps defined
+
+```sh
+kubectl get configmap
+```
+
+
+

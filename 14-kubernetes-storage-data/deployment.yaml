@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: story-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: story
+  template: 
+    metadata:
+      labels:
+        app: story
+    spec: 
+      containers: 
+        - name: story
+          image: diogoferreiranavia/kub-data-demo:2
+          env:
+            - name: STORY_FOLDER
+              valueFrom:
+                configMapKeyRef:
+                  name: data-store-env
+                  key: folder
+              # value: 'story'
+          volumeMounts:
+            - mountPath: /app/story #Internal path inside the container
+              name: story-volume
+      volumes:
+        - name: story-volume
+          persistentVolumeClaim:
+            claimName: host-pvc
+        # emptyDir is attached to the Pod and lives with the Pod. If pod is destroyed the empty dir is destroyed with it
+        # This type has a downside when there's multiple replicas since it's attached to the Pod
+          # emptyDir: {} 
+        # If you are using multiple Replicas you might prefer to use the host path type
+        # This allows to setup a path from the real machine to be exposed to all the Pods in the WorkerNode.
+        # If you have multiple Worker nodes then you need a different solution.
+          # hostPath: 
+            # path: /data
+            # type: DirectoryOrCreate
+        # The CSI type allows you to create your own driver solution for volume
+        # You can then look online for any cloud provider service driver to integrate with CSI
+        # There's a way to have persistent volumes that are independent from the Pods and Nodes
+        # The ideia is that theres a new entity in the cluster that is detached from the Node and Pod
+        # They require the use of Persistent Volume Claims that then reach out to the persistant Volumes

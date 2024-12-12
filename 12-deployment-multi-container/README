@@ -1,0 +1,46 @@
+Unfortunately for AWS ECS we are not able to use this automatic find the container IP by container name feature which was really nice locally.
+On app.js in the backend originally it was used the name mongodb in the database connection string:
+
+```js
+  var connDb = `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@mongodb:27017/course-goals?authSource=admin`,
+```
+
+which is the name of the mongodb service created on the docker-compose.yaml. Docker was able to replace this name with the IP of the mongodb container.
+On AWS ECS, when you run the containers they are run in different machines in the cloud which doesn't allow you to use the local docker network.
+But there is an exception, if the containers are added in the same Task, then they are guaranted to run on the same machine. But it still doesn't create a Docker network, but it allows you to use localhost as an address inside the container application.
+
+When deploying in AWS ECS instead of the name we should use localhost when both containers are in the same task. This means that the connection string needs to be changed into:
+
+```js
+	var connDb = `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@localhost:27017/course-goals?authSource=admin`,
+```
+
+But since you might want to run this both locally and externally in the cloud you might prefer a better approach that is changing this to an environment variable:
+
+
+```js
+	var connDb = `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_URL}:27017/course-goals?authSource=admin`,
+```
+
+---------------------------------------------------------
+
+Be careful when launching a new task after an update if the previous one is still running and both are trying to work with the same volume. The new one can't start cause the resource is in use by the last one and the last one won't be deleted while the new one isn't launched
+For this cases maybe it's better to launch the Database not on ECS (Elastic Container Service) Tasks. It's also challenging to manage.
+
+For MongoDB you can use MongoDB Atlas, a cloud service for MongoDB that can work on AWS.
+When using a cloud service for MongoDB they provide a connection string but you might have to decide to use it both for development and production.
+Or when you want to use a container for development, make sure the container is the same version than the one provided by Atlas.
+
+
+----------------------------------------------------------
+
+Understanding Multi-Stage Build Targets
+
+When building a multi-stage image, like the Dockerfile.prod in the frontend folder, we can instead of building it entirely build only parts of it. 
+For that we use the --target option like the following:
+
+```sh
+docker build --target build -f frontend/Dockerfile.prod ./frontend
+```
+
+This useful and allows you to test each singular part without building the whole image, saving time in more complex images.

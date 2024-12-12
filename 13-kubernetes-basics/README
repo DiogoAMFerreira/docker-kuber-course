@@ -1,0 +1,218 @@
+To set a dummy cluster locally we can use a tool called: MiniKube
+It's a tool that creates a virtual machine on your machine to create a Cluster, so it simulates another machine on your machine by using the virtual machine and then this virtual machine holds the Cluster.
+It will create a single node Cluster where the Worker and the Master nodes are combined into a single machine to keep things easy and resource friendly.
+This isn't something that would happen in production though.
+
+https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2F.exe+download
+
+MiniKube won't replace Kubectl too. That needs to be installed separetly to comunicate with the Cluster in both Production and Dev.
+
+https://kubernetes.io/docs/tasks/tools/
+
+Before installing MiniKube please run this command on Windows:
+
+```sh
+systeminfo
+```
+
+After it finishes make sure the following is present:
+```
+Hyper-V Requirements:      A hypervisor has been detected. Features required for Hyper-V will not be displayed.
+```
+
+After installing both Kubectl and MiniKube create a new "Virtual Machine" with the command:
+```sh
+minikube start --driver=docker
+```
+Note: If starting with docker doesn't work you might need to use VirtualBox or HyperV to be your "Virtual Machine"
+You might need to install those.
+
+You can then use the following command to get information about the status of MiniKube:
+```sh
+minikube status
+```
+
+And you can use the following command to open a dashboard for MiniKube:
+```sh
+minikube dashboard
+```
+
+# Imperative approach to Kubernetes
+
+Create an image and call it for example "kub-first-app":
+
+```sh
+docker build -t kub-first-app .
+```
+
+Publish this image to Dockerhub
+
+Deploy the image to the cluster with the following command:
+
+```sh
+kubectl create deployment first-app --image=diogoferreiranavia/kub-first-app
+```
+
+Make sure the image is public in Dockerhub or any other software that holds images. Local images don't work
+
+This command is used both in local machines or in the cloud
+
+To check if the deployment was successful we can use the command:
+
+```sh
+kubectl get deployments
+```
+
+If it was successful it will show as READY 1/1 (In case you only did one)
+If it failed it will show as 0/1 (In case you only did one)
+
+In case it failed you can get more information on why it failed using the command:
+
+```sh
+kubectl get pods
+```
+
+This command will give you extra details and show you the STATUS message that should help you understand the error
+
+For example when you try to deploy an app using an invalid image (For example one not existing in the CLUSTER machine or an official image) the STATUS will show the message "ErrImagePull"
+
+To delete a deployment, for example one that failed, use the following command:
+
+```sh
+kubectl delete deployment first-app
+```
+
+To create a service, for exposing a Pod to outside the Cluster you can use the command:
+
+```sh
+kubectl expose deployment first-app --type=LoadBalancer --port=8080
+```
+
+You need to give two options: 
+- Type 
+- Port
+
+The type has a default value of "ClusterIP", meaning it's only accessible from inside the Cluster. But it still gives a fixed IP
+Another valid type is "NodePort" which tells that this deployment should be exposed with the help of IP address of the WorkerNode, meaning it could be accessible from outside.
+A third option is the type "LoadBalancer" which would use a Load balancer that need to exist in the infraestructure where the Cluster runs. And this Load balancer will provide the IP and at the same time distribute the traffic that is part of this service. This type is only available if the Cluster and infraestructure where the Cluster runs supports it. AWS and MiniKube support it so it's a good option
+
+To get a list of running services use the following command:
+
+```ssh
+kubectl get services
+```
+
+To open an MiniKube service with an external IP use the following command:
+```sh
+minikube service first-app
+```
+
+Pods will automatically restart when they fail. The time it takes to restart will increase each time to prevent situations where a Pod keeps crashing and restarting
+
+We can scale a deployment if we are expecting more traffic to it using the following command:
+```sh
+kubectl scale deployment/first-app --replicas=3
+```
+The previous command will make sure that the deployment called first-app will have 3 pods running
+
+And with this, if a Pod crashes everything keeps working because there are other two Pods available to answer
+
+You can also scale down your number of Pods when you don't need them
+
+To update a deployment we can use the following command:
+```sh
+kubectl set image deployment/first-app kub-first-app="diogoferreiranavia/kub-first-app"
+```
+
+Once updated you will notice that it didn't change anything. That's because Kubernetes only updates the image if they have different tags
+This means that when you update the image it's best to give it a version number
+
+Recreate the image and push it into Dockerhub:
+```sh
+docker build -t diogoferreiranavia/kub-first-app:2 .
+docker push diogoferreiranavia/kub-first-app:2
+```
+
+And update the deployment again giving the version of the image:
+```sh
+kubectl set image deployment/first-app kub-first-app="diogoferreiranavia/kub-first-app:2"
+```
+
+When the image is changed you will see the following update message in the console:
+```
+deployment.apps/first-app image updated
+```
+
+You can also check the status of the deployment of the update using the following command:
+
+```sh
+kubectl rollout status deployment/first-app
+```
+
+In case you use an invalid image, tag or version of the image then even though it shows that the image was updated you can check that it gave an error with the previous command or with the previous commands that get the status of the Pods. But while it fails to update it doesn't terminate the old Pod. Meaning that the application keeps working properly
+
+The MiniKube dashboard also shows you detailed information for this case, as it would if you were using AWS
+
+To rollback an update you should use the following command:
+```sh
+kubectl rollout undo deployment/first-app
+```
+
+If you want to actually rollback into a previous version that was deployed you can use the following command to list the update changes:
+```sh
+kubectl rollout history deployment/first-app
+```
+
+For extra information on one of the revision we can use the following command:
+```sh
+kubectl rollout history deployment/first-app --rollback=1
+```
+
+To go back to that revision use the --to-revision option on the undo command:
+```sh
+kubectl rollout undo deployment/first-app --to-revision=1
+```
+
+To delete a service use the following command:
+```sh
+kubectl delete service first-app
+```
+
+# Declarative approach to Kubernetes
+
+Deployment docs:
+https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+
+Service references:
+https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/
+
+To launch a deployment or a service you use the following command:
+```sh
+kubectl apply -f deployment.yaml -f service.yaml
+```
+You can add multiple files with more -f options
+
+To open the app:
+```sh
+minikube service backend
+```
+
+To make changes you just change the file and re apply with the same command
+
+To delete any changes made by a file you can use the command:
+```sh
+kubectl delete -f deployment.yaml
+```
+This won't delete the file.. Only the changes made by it
+You can also add multiple files using ,
+But you can still use the imperative way to delete a service or deployment
+
+If you want to put multiple configurations in a file use the yaml language specific object separator: "---"
+If you are combining a service and a deployment it's generally a good practice to start a service first in the file
+
+You can also delete using labels using the following logic:
+```sh
+kubectl delete deployments,services -l group=example
+```
+
+Deleting by label requires you to specify what you want to delete for safety. That's why it's specified to only delete deployments and services
