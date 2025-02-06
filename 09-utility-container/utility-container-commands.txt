@@ -36,7 +36,3 @@ Example of this:
 docker-compose run --rm npm init
 
 Attention: Docker compose run doesn't do up and down of the container, this means the container isn't removed after. You might want to add the --rm option
-
-When working with "Utility Containers" on Linux, take a closer look at this very helpful thread in the Q&A section: 
-https://www.udemy.com/course/docker-kubernetes-the-practical-guide/learn/#questions/12977214/
-This thread discusses user permissions as set by Docker when working with "Utility Containers" and how you should tweak them.
